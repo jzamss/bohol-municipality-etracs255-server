@@ -22,6 +22,9 @@ class ExaminationService
     @Service('DateService')
     def dtSvc
 
+    @DataContext('sys_org')
+    def em_org 
+
 
     @ProxyMethod
     public def open(entity) {
@@ -93,7 +96,12 @@ class ExaminationService
     }
 
     def generateNextSequence(finding) {
-        def lguid = env.ORGID.replace('-', '')
+        def lguid = null;
+        if (env.ORGID) {
+            lguid = env.ORGID.replace('-', '')
+        } else {
+            lguid = em_org.select('objid').find([root: 1]).first().objid.replace('-', '')
+        }
         def cy = dtSvc.serverYear
         def key = ['RPTEXAMINATION', lguid, cy].join('-')
         return [lguid, cy, seqSvc.getNextFormattedSeries(key)].join()

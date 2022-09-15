@@ -274,6 +274,11 @@ class RPTCertificationService
         return sigSvc.decodeSignatories(signatories);
 	}
 
+	@ProxyMethod
+	public def checkUserAllowedAction(param) {
+        return util.checkUserAllowedAction(param)
+	}
+
 	def htmlMapping = [
 		'&' : '&amp;',
 		'<' : '&lt;',
@@ -297,7 +302,10 @@ class RPTCertificationService
 		if (cert.taxpayer && cert.taxpayer.objid) {
 			ids << cert.taxpayer.objid
 			ids += em_mapping.select('objid').find([parent_objid: cert.taxpayer.objid]).list().objid
-			ids += getMultipleOwnershipIds(ids)
+
+			def multipleids = getMultipleOwnershipIds(ids)
+			ids += multipleids
+
 			if (cert.includemembers) {
 				ids += getMemberIds(ids)
 			}
@@ -312,7 +320,7 @@ class RPTCertificationService
 	def getMultipleOwnershipIds(ids) {
 		def idlist = []
 		ids.each {
-			idlist += em_member.select('entityid').find([member_objid: it]).list().entityid
+			idlist += em_member.select('memberid: {member_objid}').find([entityid: it]).list().memberid
 		} 
 		return idlist.unique()
 	}
@@ -321,18 +329,10 @@ class RPTCertificationService
 		def idlist = []
 		def memberids = []
 		ids.each{
-			memberids += em_member.select('memberid: {member_objid}').find([entityid: it]).list().memberid
+			memberids += em_member.select('entityid').find([member_objid: it]).list().entityid
 		}
-		memberids = memberids.unique()
-		idlist += memberids 
-
-		def multipleids = []
-		memberids.each{
-			multipleids += em_member.select('entityid').find([member_objid: it]).list().entityid
-		}
-		multipleids = multipleids.unique()
-		idlist += multipleids
-		return idlist.unique()
+		idlist += memberids.unique() 
+		return idlist;
 	}
 
 

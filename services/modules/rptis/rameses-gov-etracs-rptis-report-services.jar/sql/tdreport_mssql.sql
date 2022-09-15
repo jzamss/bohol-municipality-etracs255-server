@@ -18,6 +18,7 @@ SELECT
 	rp.barangayid,
 	rp.lgutype,
 	rp.stewardshipno,
+	rp.portionof,
 	r.rputype,
 	r.ry,
 	r.suffix,
@@ -225,7 +226,7 @@ WHERE f.objid = $P{faasid}
 
 
 [getBldgAssessments]
-SELECT 
+SELECT DISTINCT
 	'BLDG' as propertytype, 
 	dc.code AS dominantclasscode,
 	dc.name AS dominantclassification,
@@ -385,6 +386,7 @@ WHERE f.objid = $P{faasid}
 select
 	f.tdno, f.owner_name, 
 	rp.cadastrallotno, 
+	rp.blockno,
 	r.totalareasqm, r.totalareaha
  from rpu r
 	inner join faas f on r.objid = f.rpuid  
@@ -405,7 +407,7 @@ select
 		where f.objid = $P{faasid}
 	) x 
 where r.objid = x.landrpuid 
-  and f.state <> 'CANCELLED' 
+order by f.dtapproved desc
 
 
 

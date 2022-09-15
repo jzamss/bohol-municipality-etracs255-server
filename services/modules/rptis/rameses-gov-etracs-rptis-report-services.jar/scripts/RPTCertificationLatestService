@@ -25,7 +25,7 @@ class RPTCertificationLatestService
 		if (!cert.faasid)
 			em.insertLastAndExistingItems(cert)
 
-		return cert;
+		return openCertification(cert.objid);
 	}
 
 	@ProxyMethod

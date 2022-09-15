@@ -62,11 +62,14 @@ class LandTaxReportAbstractTaxCollectionService {
 
         def params = [remittanceid:entity.objid]
         def items = em.getAbstractOfRPTCollectionDetail(params)
-
         if(! items ) throw new Exception('No records found.     ')
 
-        items.each{ 
-            it.items = em.getAbstractOfRPTCollectionDetailItem(it)
+        items.each{
+            if (entity.period == 'ANNUAL') {
+                it.items = em.getAbstractOfRPTCollectionDetailItemAnnual(it)
+            } else {
+                it.items = em.getAbstractOfRPTCollectionDetailItem(it)
+            } 
         }   
         
         def header = [:]

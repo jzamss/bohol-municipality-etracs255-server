@@ -178,25 +178,36 @@ class ResectionService
     		throw new Exception('Suffix must be between ' + suffixes[0].from + ' and ' + suffixes[0].to + '.')
     }
 		
-		@ProxyMethod
-		public void validateNewTdNo(newfaas) {
-			if (!newfaas.tdno) throw new Exception('New TD No. must be specified')
-			faasSvc.checkDuplicateTdNo( newfaas.objid, newfaas.tdno )
-		}
+    @ProxyMethod
+    public void validateNewTdNo(newfaas) {
+        if (!newfaas.tdno) throw new Exception('New TD No. must be specified')
+        faasSvc.checkDuplicateTdNo( newfaas.objid, newfaas.tdno )
+    }
 
-		@ProxyMethod
-		public void validateNewPin(resectionitem) {
-			def faas = em_faas_list.select('objid,state,ry').find([objid: resectionitem.faas.objid]).first();
-			if (!faas) throw new Exception('Referenced FAAS does not exist or has already been deleted');
+    @ProxyMethod
+    public void validateNewPin(resectionitem) {
+        def faas = em_faas_list.select('objid,state,ry').find([objid: resectionitem.faas.objid]).first();
+        if (!faas) throw new Exception('Referenced FAAS does not exist or has already been deleted');
 
-			def newfaas = resectionitem.newfaas;
-			if (!newfaas.fullpin) throw new Exception('New PIN must be specified');
+        def newfaas = resectionitem.newfaas;
+        if (!newfaas.fullpin) throw new Exception('New PIN must be specified');
 
-			def duplicatePin = em_faas_list.find([pin: newfaas.fullpin, ry: faas.ry, rputype: 'land'])
-												.where('objid <> :objid', [objid: newfaas.objid])
-												.first();
-			if (duplicatePin) throw new Exception('Duplicate PIN ' + newfaas.fullpin + ' is not allowed');
-		}
+        def duplicate = em_resection_item
+            .select('faas.*')
+            .find([parent_objid: resectionitem.parent.objid])
+            .where('faas_objid <> :faasid AND newfaas_fullpin = :fullpin', [
+                faasid: resectionitem.faas.objid,
+                fullpin: resectionitem.newfaas.fullpin
+            ]).first()
+
+        if (duplicate) {
+            def msg = 'Section ' + resectionitem.newfaas.section
+            msg += ' Parcel ' + resectionitem.newfaas.parcel
+            msg += ' is already assigned to PIN ' + duplicate.faas.pin 
+            throw new Exception(msg)
+        }
+
+    }
 
     @ProxyMethod
     public def createNewFaas(item) {
@@ -338,6 +349,11 @@ class ResectionService
             faasSvc.updateSignatoryInfo(t)
         }
 	}
+
+    @ProxyMethod
+    public def getReportData(entity) {
+        return  open(entity)
+    }
 
 
     void assignFaasNewTdNo(item){

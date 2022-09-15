@@ -184,6 +184,7 @@ class MiscRPUService
     
     void saveItems(items){
         items.each{ item -> 
+            item.taxable = item.taxable == null ? true : item.taxable;
             em.save(item, SCHEMA_ITEM)
 
             item.params.each{param ->

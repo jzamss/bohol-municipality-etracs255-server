@@ -83,6 +83,7 @@ class LandTaxBuildDelinquencyService
 	public def delete(entity){
 		def retval = [status:'ok']
 		try{
+			em_delinquency.deleteTaxpayerSummary()
 			em_delinquency.deleteErrors()
 			em_delinquency.deleteForProcess()
 			em_delinquency.deleteItems()
@@ -222,6 +223,12 @@ class LandTaxBuildDelinquencyService
 								   .list()
 								   .each{ it.selected = false }
 	}
+
+	@ProxyMethod
+    public void buildSummaries(entity) {
+        em_delinquency.deleteTaxpayerSummary(entity)
+        em_delinquency.insertTaxpayerSummary(entity)
+    }
 
 
 

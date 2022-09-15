@@ -183,7 +183,7 @@ from (
       sum(sefpreviousyear) as previousyear,
       sum(sefdiscount) as discount,
       sum(sefpenaltycurrent) as penaltycurrent,
-      0 as penaltyprevious,
+      sum(sefpenaltyprevious) as penaltyprevious,
       0 as basicidlecurrent,
       0 as basicidleprevious,
       0 as basicidlediscount,
@@ -258,7 +258,7 @@ select
       sum(sefpreviousyear) as previousyear,
       sum(sefdiscount) as discount,
       sum(sefpenaltycurrent) as penaltycurrent,
-      0 as penaltyprevious,
+      sum(sefpenaltyprevious) as penaltyprevious,
       0 as basicidlecurrent,
       0 as basicidleprevious,
       0 as basicidlediscount,
@@ -688,6 +688,43 @@ group by
 order by b.name, rl.tdno, rl.cadastrallotno, rpi.year, rpi.qtr
 
 
+[getAbstractOfRPTCollectionDetailItemAnnual]
+select
+    b.name as barangay, rl.tdno, rl.cadastrallotno, rl.totalav as assessedavalue,
+    rpi.year, 0 as qtr, 
+    sum(rpi.basic) as basic, 
+    sum(rpi.basicint) as basicint, 
+    sum(rpi.basicdisc) as basicdisc, 
+    sum(rpi.basicdp) as basicdp, 
+    sum(rpi.basicnet) as basicnet,
+    sum(rpi.sef) as sef, 
+    sum(rpi.sefint) as sefint, 
+    sum(rpi.sefdisc) as sefdisc, 
+    sum(rpi.sefdp) as sefdp, 
+    sum(rpi.sefnet) as sefnet,
+    sum(rpi.basicidle) as basicidle, 
+    sum(rpi.basicidleint) as basicidleint, 
+    sum(rpi.basicidledisc) as basicidledisc, 
+    sum(rpi.basicidledp) as basicidledp, 
+    sum(rpi.basicidle + rpi.basicidledp) as basicidlenet,
+    sum(rpi.basicidle + rpi.basicidledp) as idlenet,
+    sum(rpi.sh) as sh, 
+    sum(rpi.shint) as shint, 
+    sum(rpi.shdisc) as shdisc, 
+    sum(rpi.shdp) as shdp, 
+    sum(rpi.shnet) as shnet,
+    sum(rpi.firecode) as firecode,
+    sum(rpi.amount) as total
+from rptpayment rp
+  inner join vw_rptpayment_item_detail rpi on rp.objid = rpi.parentid
+  inner join rptledger rl on rp.refid = rl.objid 
+  inner join barangay b on b.objid = rl.barangayid 
+where rp.receiptid = $P{objid}
+group by 
+    b.name, rl.tdno, rl.cadastrallotno, rl.totalav, rpi.year
+order by b.name, rl.tdno, rl.cadastrallotno, rpi.year
+
+
 [getAbstractOfRPTCollectionSummary]
 select 
 	xx.*,
@@ -775,7 +812,8 @@ from (
 					rl.tdno,
 					rlf.assessedvalue,
 					rl.owner_name,
-					rpi.year 
+					rpi.year,
+					cv.objid
 	) x 
 	group by 
 			x.receiptno,
